@@ -80,6 +80,7 @@ si_part = myassembly.PartFromBooleanCut(
 )
 del mymodel.parts['UncutSi']
 
+#myassembly에 assembly된 부품을 삭제하고, 새로운 부품을 assembly에 추가. 최종적인 assembly은 Cu와 Si로 구성됨
 cu_instance = myassembly.Instance(name='Cu', part=cu_part, dependent=ON)
 si_instance = myassembly.Instance(name='Si', part=si_part, dependent=ON)
 
@@ -102,5 +103,71 @@ si_material.Conductivity(table=((K_SI,),)) # Thermal Conductivity
 si_material.SpecificHeat(table=((C_SI,),)) # Specific Heat
 #-------------------------------------------------
 
-# 모델 저장
+# Define Via section
+via_section = mymodel.HomogeneousSolidSection(name='Via', material='Cu', thickness=None)
+
+# Define Wafer section
+wafer_section = mymodel.HomogeneousSolidSection(name='wafer', material='Si', thickness=None)
+
+# Assign sections to parts
+cu_region = (cu_part.cells, )
+cu_part.SectionAssignment(region=cu_region, sectionName='Via')
+
+si_region = (si_part.cells, )
+si_part.SectionAssignment(region=si_region, sectionName='wafer')
+
+myassembly.regenerate() # 할 필요는 없지만 안전을 위해 assembly 최신화
+
+#-------------------------------------------------
+#Steps
+# 사용자 정의 Amplitude 생성 (온도 사이클)
+custom_amplitude_data = [
+    (0.0, 25.0),       # 시간 0분, 온도 25°C
+    (18.33, 300.0),    # 15도/분으로 가열하여 18.33분 후 300°C 도달
+    (28.33, 300.0),    # 10분간 300°C 유지
+    (44.33, -65.0),    # -10도/분으로 냉각하여 44.33분 후 -65°C 도달
+    (54.33, -65.0),    # 10분간 -65°C 유지
+    (70.0, 25.0)       # 15도/분으로 가열하여 70분 후 25°C 도달
+]
+
+# Amplitude 정의
+mymodel.TabularAmplitude(name='ThermalCycle', timeSpan=STEP, smooth=SOLVER_DEFAULT, data=custom_amplitude_data)
+
+# Step 설정
+mymodel.CoupledTempDisplacementStep(name='TCTCondition', previous='Initial', timePeriod=70.0, 
+                                    initialInc=1.0, minInc=0.01, maxInc=1.0, deltmx=100.0)
+
+# Create sets for all cells in Si and Cu parts
+si_part.Set(name='Sivolume', cells=si_part.cells[:])
+cu_part.Set(name='Cuvolume', cells=cu_part.cells[:])
+
+# Update Temperature BCs to reference sets in instances
+region_sivolume = myassembly.instances['Si'].sets['Sivolume']
+region_cuvolume = myassembly.instances['Cu'].sets['Cuvolume']
+
+mymodel.TemperatureBC(name='SiTempBC', createStepName='TCTCondition', region=region_sivolume, 
+                      distributionType=UNIFORM, fieldName='', magnitude=0.0, amplitude='ThermalCycle')
+
+mymodel.TemperatureBC(name='CuTempBC', createStepName='TCTCondition', region=region_cuvolume, 
+                      distributionType=UNIFORM, fieldName='', magnitude=0.0, amplitude='ThermalCycle')
+
+# Manually select the four lateral faces of Si
+left_face = si_part.faces.findAt(((-R_SI, Y_SI / 2, 0),))  # Left face
+right_face = si_part.faces.findAt(((R_SI, Y_SI / 2, 0),))  # Right face
+front_face = si_part.faces.findAt(((0, Y_SI / 2, -R_SI),))  # Front face
+back_face = si_part.faces.findAt(((0, Y_SI / 2, R_SI),))  # Back face
+
+# Combine the selected faces into a single set
+si_part.Set(name='SiLateralSurf', faces=(left_face, right_face, front_face, back_face))
+
+# Convert the set to a region
+region_silateralsurf = myassembly.instances['Si'].sets['SiLateralSurf']
+
+# Add boundary condition to fix the lateral surfaces
+mymodel.DisplacementBC(name='FixedSiLateral', createStepName='TCTCondition', region=region_silateralsurf, 
+                       u1=0.0, u2=0.0, u3=0.0, 
+                       ur1=UNSET, ur2=UNSET, ur3=UNSET, 
+                       amplitude=UNSET, fixed=ON, distributionType=UNIFORM, fieldName='')
+
+
 mdb.saveAs(pathName='C:/Users/user/Desktop/ABAQUS/GEOMETRY/auto_model_output.cae')
