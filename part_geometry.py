@@ -3,38 +3,31 @@ from abaqusConstants import *
 import numpy as np
 from scipy.interpolate import lagrange
 #-------------------------------------------------
-#Units are in MMKS(mm, N, ton, MPa, mJ, ton/mm^3)
-#Geometrical informations
+#Units are in MMKS(mm, kg, s, kg/m^3, Pa)
+#Geometrical informations, Geometry is scaled up to 1000 times
 R_SI = 100
 Y_SI = 100
 R0_CU = np.array([15, 35, 10])
 Y0_CU = np.array([0, 60, Y_SI])
 #-------------------------------------------------
-#Units are in MMKS(mm, N, ton, MPa, mJ, ton/mm^3)
 #Material Properties(Cu)
 E_CU = 120e3 # Elastic Modulus
 NU_CU = 0.34 # Poisson's Ratio
 CTE_CU = 17e-6
 Y_CU = 150
-def s_t_cu(e_t_cu): #Plasticity true stress-strain curve
-    if e_t_cu <= 0.02:
-        return 8.0e4 * e_t_cu
-    else:
-        return 69.6 * (e_t_cu ** 0.286)
-P_TABLE_CU = ((s_t_cu(e_t_cu), e_t_cu) for e_t_cu in np.linspace(0, 0.2, 200, endpoint=True).tolist())
-K_CU = 401e-3 #Thermal Conductivity
-C_CU = 390e6 #Specific heat
-RHO_CU = 8960e-12 #Density
+e_t_values = np.linspace(0, 0.2, 200, endpoint=True).tolist()
+P_TABLE_CU = [(140 + 69.6 * (e_t_cu ** 0.286), e_t_cu) for e_t_cu in e_t_values]
+K_CU = 0.401 #Thermal Conductivity
+C_CU = 390e-6 #Specific heat
+RHO_CU = 8.960e-12 #Density
 
-#Material Properties(Si)
-E_SI = 130e3
-NU_SI = 0.28
-CTE_SI = 2.8e-6
-K_CU = 0.0015e-3
-C_CU = 700e6
-RHO_CU = 2330e-12
-
-#Cohesive Contact
+# Material Properties (Si - Silicon) in MMKS
+E_SI = 130000  # Elastic Modulus in MPa
+NU_SI = 0.28  # Poisson's Ratio
+CTE_SI = 2.8e-6  # Coefficient of Thermal Expansion in 1/°C
+K_SI = 0.149  # Thermal Conductivity in W/mm·K (converted from W/m·K)
+C_SI = 700e-6  # Specific Heat in mJ/kg·K (converted from J/kg·K)
+RHO_SI = 2.33e-12  # Density in kg/mm³ (converted from kg/m³)
 
 #-------------------------------------------------
 #r-z relation
@@ -87,20 +80,27 @@ si_part = myassembly.PartFromBooleanCut(
 )
 del mymodel.parts['UncutSi']
 
+cu_instance = myassembly.Instance(name='Cu', part=cu_part, dependent=ON)
+si_instance = myassembly.Instance(name='Si', part=si_part, dependent=ON)
 
-'''
 #-------------------------------------------------
 # 구리 재료 정의
 cu_material = mymodel.Material(name = 'Cu')
-cu_material.Elastic(table = (E_CU, NU_CU)) #E, Poisson's ratio
-cu_material.Plastic(table = P_TABLE_CU)
-cu_material
+cu_material.Elastic(table=((E_CU, NU_CU),)) # Elastic Modulus and Poisson's Ratio
+cu_material.Plastic(table=P_TABLE_CU) # Plasticity true stress-strain curve
+cu_material.Expansion(table=((CTE_CU,),)) # Coefficient of Thermal Expansion
+cu_material.Density(table=((RHO_CU,),)) # Density
+cu_material.Conductivity(table=((K_CU,),)) # Thermal Conductivity
+cu_material.SpecificHeat(table=((C_CU,),)) # Specific Heat
 
-si_material = mymodel.Material(name = 'Si')
-si_material.Elastic(table = (E_SI, NU_SI))
-si_material
-
+# 실리콘 재료 정의
+si_material = mymodel.Material(name='Si')
+si_material.Elastic(table=((E_SI, NU_SI),)) # Elastic Modulus and Poisson's Ratio
+si_material.Expansion(table=((CTE_SI,),)) # Coefficient of Thermal Expansion
+si_material.Density(table=((RHO_SI,),)) # Density
+si_material.Conductivity(table=((K_SI,),)) # Thermal Conductivity
+si_material.SpecificHeat(table=((C_SI,),)) # Specific Heat
 #-------------------------------------------------
-'''
+
 # 모델 저장
 mdb.saveAs(pathName='C:/Users/user/Desktop/ABAQUS/GEOMETRY/auto_model_output.cae')
