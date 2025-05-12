@@ -1,0 +1,42 @@
+Failed Elements and Step Times
+================================
+Step: TCTCondition
+Time: 1196.949951171875, Element: 79, Instance: CU
+Time: 1226.949951171875, Element: 65, Instance: CU
+Time: 1229.449951171875, Element: 81, Instance: CU
+Time: 1233.449951171875, Element: 8, Instance: CU
+Time: 1233.824951171875, Element: 67, Instance: CU
+Time: 1303.449951171875, Element: 95, Instance: CU
+Time: 1345.119873046875, Element: 11, Instance: CU
+Time: 1368.4244384765625, Element: 72, Instance: CU
+Time: 1369.4244384765625, Element: 25, Instance: CU
+Time: 1371.2056884765625, Element: 78, Instance: CU
+Time: 1407.0416259765625, Element: 82, Instance: CU
+Time: 1413.0416259765625, Element: 58, Instance: CU
+Time: 1414.5416259765625, Element: 51, Instance: CU
+Time: 1418.0885009765625, Element: 68, Instance: CU
+Time: 1434.2271728515625, Element: 22, Instance: CU
+Time: 1435.2271728515625, Element: 53, Instance: CU
+Time: 1436.2271728515625, Element: 64, Instance: CU
+Time: 1442.2271728515625, Element: 93, Instance: CU
+Time: 1482.3521728515625, Element: 39, Instance: CU
+Time: 1502.4771728515625, Element: 50, Instance: CU
+Time: 1508.4771728515625, Element: 36, Instance: CU
+Time: 1510.4771728515625, Element: 92, Instance: CU
+Time: 1621.3521728515625, Element: 2, Instance: CU
+Time: 1642.4146728515625, Element: 54, Instance: CU
+Time: 1648.4146728515625, Element: 96, Instance: CU
+Time: 1654.4146728515625, Element: 86, Instance: CU
+Time: 1686.4459228515625, Element: 4, Instance: CU
+Time: 1687.4459228515625, Element: 37, Instance: CU
+Time: 1694.4459228515625, Element: 23, Instance: CU
+Time: 1721.6959228515625, Element: 17, Instance: CU
+Time: 1722.6959228515625, Element: 73, Instance: CU
+Time: 1752.9459228515625, Element: 83, Instance: CU
+Time: 1824.1021728515625, Element: 1, Instance: CU
+Time: 1830.1021728515625, Element: 87, Instance: CU
+Time: 1861.6021728515625, Element: 97, Instance: CU
+Time: 1903.8521728515625, Element: 31, Instance: CU
+Time: 1907.1646728515625, Element: 106, Instance: CU
+Time: 1932.4146728515625, Element: 88, Instance: CU
+Time: 1961.45068359375, Element: 109, Instance: CU
